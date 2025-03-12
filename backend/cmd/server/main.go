@@ -1,76 +1,39 @@
+// backend/cmd/server/main.go
+
 package main
 
 import (
     "log"
-    "os"
-    "github.com/yourusername/crypto-monitor/internal/api"
-    "github.com/yourusername/crypto-monitor/internal/database"
-    "github.com/yourusername/crypto-monitor/internal/cache"
-    "github.com/yourusername/crypto-monitor/internal/market"
-    "github.com/yourusername/crypto-monitor/internal/portfolio"
-    "github.com/yourusername/crypto-monitor/internal/websocket"
+    "your-project/internal/config"
+    "your-project/internal/database"
+    "your-project/internal/cache"
+    "your-project/internal/api"
 )
 
 func main() {
-    // Initialize logger
-    logger := log.New(os.Stdout, "[CRYPTO-MONITOR] ", log.LstdFlags)
-
     // Load configuration
-    config, err := LoadConfig()
-    if err != nil {
-        logger.Fatalf("Failed to load config: %v", err)
-    }
+    cfg := config.LoadConfig()
 
     // Initialize database
-    db, err := database.NewDB(config.DatabaseURL)
+    db, err := database.InitDB(cfg.DatabaseURL)
     if err != nil {
-        logger.Fatalf("Failed to connect to database: %v", err)
+        log.Fatalf("Failed to connect to database: %v", err)
     }
     defer db.Close()
 
-    // Initialize Redis cache
-    redisCache, err := cache.NewRedisCache(config.RedisURL)
+    // Initialize Redis
+    redis, err := cache.InitRedis(cfg.RedisURL)
     if err != nil {
-        logger.Fatalf("Failed to connect to Redis: %v", err)
+        log.Fatalf("Failed to connect to Redis: %v", err)
     }
-    defer redisCache.Close()
+    defer redis.Close()
 
-    // Initialize services
-    marketService := market.NewMarketService(redisCache)
-    portfolioService := portfolio.NewService(db, marketService)
-    
-    // Initialize WebSocket hub
-    hub := websocket.NewHub()
-    go hub.Run()
-
-    // Initialize API server
-    server := api.NewServer(
-        db,
-        marketService,
-        portfolioService,
-        hub,
-        logger,
-    )
+    // Initialize router
+    router := api.SetupRouter(db, redis, cfg)
 
     // Start server
-    logger.Printf("Starting server on %s", config.ServerAddress)
-    if err := server.Start(config.ServerAddress); err != nil {
-        logger.Fatalf("Server failed: %v", err)
+    log.Printf("Server starting on port %s", cfg.Port)
+    if err := router.Run(":" + cfg.Port); err != nil {
+        log.Fatalf("Failed to start server: %v", err)
     }
-}
-
-type Config struct {
-    ServerAddress string
-    DatabaseURL   string
-    RedisURL      string
-    JWTSecret     string
-}
-
-func LoadConfig() (*Config, error) {
-    return &Config{
-        ServerAddress: os.Getenv("SERVER_ADDRESS"),
-        DatabaseURL:   os.Getenv("DATABASE_URL"),
-        RedisURL:      os.Getenv("REDIS_URL"),
-        JWTSecret:     os.Getenv("JWT_SECRET"),
-    }, nil
 }
