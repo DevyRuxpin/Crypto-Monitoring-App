@@ -1,0 +1,36 @@
+server:
+  port: 8080
+  timeout: 30s
+  read_timeout: 15s
+  write_timeout: 15s
+
+database:
+  host: ${DB_HOST}
+  port: 5432
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  name: ${DB_NAME}
+  max_connections: 100
+  idle_connections: 10
+
+redis:
+  url: ${REDIS_URL}
+  max_retries: 3
+  pool_size: 10
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 24h
+
+market:
+  update_interval: 5s
+  symbols:
+    - BTC
+    - ETH
+    - XRP
+    - ADA
+    - DOT
+
+logging:
+  level: info
+  format: json

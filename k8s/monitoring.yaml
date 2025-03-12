@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: crypto-monitor
+spec:
+  selector:
+    matchLabels:
+      app: crypto-monitor
+  endpoints:
+  - port: metrics
+    interval: 15s

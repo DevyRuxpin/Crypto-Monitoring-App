@@ -1,0 +1,33 @@
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Market Data</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <table mat-table [dataSource]="marketData">
+            <ng-container matColumnDef="symbol">
+                <th mat-header-cell *matHeaderCellDef> Symbol </th>
+                <td mat-cell *matCellDef="let element"> {{element.symbol}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="price">
+                <th mat-header-cell *matHeaderCellDef> Price </th>
+                <td mat-cell *matCellDef="let element"> {{element.price | currency}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="change24h">
+                <th mat-header-cell *matHeaderCellDef> 24h Change </th>
+                <td mat-cell *matCellDef="let element" [ngClass]="{'positive': element.change24h > 0, 'negative': element.change24h < 0}">
+                    {{element.change24h | number:'1.2-2'}}%
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="volume24h">
+                <th mat-header-cell *matHeaderCellDef> 24h Volume </th>
+                <td mat-cell *matCellDef="let element"> {{element.volume24h | number}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </mat-card-content>
+</mat-card>
